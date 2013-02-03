@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+    	    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+    </head>
+    <body>
+    	<div id="container"></div>
+        <script src="../../../dist/kinetic-Global-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Type-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Canvas-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Transform-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Collection-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Node-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Container-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Stage-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Layer-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Group-vcurrent.min.js"></script>
+        <script src="../../../dist/kinetic-Shape-vcurrent.min.js"></script>
+        
+        <script src="../../../dist/kinetic-Circle-vcurrent.min.js"></script>
+ 
+        <script src="../../js/Test.js"></script>
+ 
+    <div id="container"></div>
+    <script src="http://www.html5canvastutorials.com/libraries/kinetic-v4.3.1-beta.js"></script>
+    <script>
+      function update(layer, frame) {
+        var angularSpeed = 1;
+        var angularDiff = angularSpeed * 2 * Math.PI * frame.timeDiff / 1000;
+        var shapes = layer.getChildren();
+
+        for(var n = 0; n < shapes.length; n++) {
+          var shape = shapes[n];
+          shape.attrs.rotation += angularDiff;
+        }
+      }
+      var stage = new Kinetic.Stage({
+        container: 'container',
+        width: 578,
+        height: 200
+      });
+      /*
+       * setting the listening property to false will improve
+       * drawing performance because the rectangles won't have to be
+       * drawn onto the buffer context
+       */
+      var layer = new Kinetic.Layer({
+        listening: false
+      });
+      var colors = ['red', 'orange', 'yellow', 'green', 'blue', 'cyan', 'purple'];
+      var colorIndex = 0;
+
+      for(var n = 0; n < 300; n++) {( function() {
+          var i = n;
+          var color = colors[colorIndex++];
+          if(colorIndex >= colors.length) {
+            colorIndex = 0;
+          }
+
+          var randWidth = Math.random() * 100 + 20;
+          var randHeight = Math.random() * 100 + 20;
+          var randX = Math.random() * stage.getWidth() - 20;
+          var randY = Math.random() * stage.getHeight() - 20;
+
+          var box = new Kinetic.Rect({
+            x: randX,
+            y: randY,
+            offset: {
+              x: randWidth / 2,
+              y: randHeight / 2
+            },
+            width: randWidth,
+            height: randHeight,
+            fill: color,
+            stroke: 'black',
+            strokeWidth: 4
+          });
+
+          layer.add(box);
+        }());
+      }
+
+      stage.add(layer);
+
+      var anim = new Kinetic.Animation(function(frame) {
+        update(layer, frame);
+      }, layer);
+
+      anim.start();
+
+    </script>
+  </body>
+
+</html>

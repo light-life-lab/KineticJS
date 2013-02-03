@@ -1,5 +1,5 @@
 jsdoc-toolkit
-dist
+#dist
 tests/js/unitTests.js
 analysis
 

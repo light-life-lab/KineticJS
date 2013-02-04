@@ -25,11 +25,97 @@
         <script src="../../../dist/kinetic-Circle-vcurrent.min.js"></script>
  
         <script src="../../js/Test.js"></script>
- 
-    <div id="container"></div>
-    <script src="http://www.html5canvastutorials.com/libraries/kinetic-v4.3.1-beta.js"></script>
+    <!--<script src="http://www.html5canvastutorials.com/libraries/kinetic-v4.3.1-beta.js"></script>-->
     <script>
-      function update(layer, frame) {
+
+    /*
+
+
+    mix 
+
+    animation paradigms:
+
+    - coloring book
+    all pixels divided into groups of one pixel or more
+    static groups, dynamic colors
+
+    - sprites
+    objects moving across canvas
+    dynamic group, static color
+
+        stage < 
+            group <
+                local sprite <
+                    state <
+                        group
+
+        pointers
+            group || color
+            sprite || state 
+            sprite contains states
+
+            sprite has inlets and outlets
+
+            group || transition
+
+            transition || colors
+    */
+    /*
+    creation functions:
+    - CRUD frame
+
+    - CRUD groups
+
+    - CRUD palettes
+
+    - set attributes
+        tweening 
+            colors
+
+        shadow pixels
+
+    */
+    /*
+    performance functions:
+
+
+    */
+
+      function update(group, frame) {
+        //Animation runs every ~25ms
+
+        //console.log(frame.timeDiff);
+
+        var pixels = group.getChildren();
+        //console.log(allPixels);
+
+        //var pixel = group.get('#x0y0');
+        //console.log(pixel);
+        
+        var tgt = [{x:1,y:1},{x:1,y:2},{x:1,y:3},{x:1,y:4}];
+
+        for(var n = 0; n < pixels.length; n++) {
+          
+          var pixel = pixels[n];
+
+          var id = pixel.getId();
+
+          for (var t = 0; t < tgt.length; t++) {
+
+            var tId = 'x'+tgt[t].x+'y'+tgt[t].y;
+
+            if (id === tId) {
+                pixel.setFill('#00ff00');
+              } else {
+                //pixel.setFill('#000000');
+              }
+
+          }
+          
+          //shape.attrs.rotation += angularDiff;
+        }
+        //pixel[0].setFill('#00ff00');
+        /*
         var angularSpeed = 1;
         var angularDiff = angularSpeed * 2 * Math.PI * frame.timeDiff / 1000;
         var shapes = layer.getChildren();
@@ -38,23 +124,38 @@
           var shape = shapes[n];
           shape.attrs.rotation += angularDiff;
         }
+        */
       }
+
+      function makeCollection(map) {
+
+        var pGroup = new Kinetic.Collection()
+
+
+        return pGroup;
+
+      }
+
       var stage = new Kinetic.Stage({
         container: 'container',
-        width: 578,
-        height: 200
+        width: 1200,
+        height: 700
       });
       /*
        * setting the listening property to false will improve
        * drawing performance because the rectangles won't have to be
        * drawn onto the buffer context
        */
+
+    //ROOT LAYER
       var layer = new Kinetic.Layer({
         listening: false
       });
+
+
       var colors = ['red', 'orange', 'yellow', 'green', 'blue', 'cyan', 'purple'];
       var colorIndex = 0;
-
+      /*
       for(var n = 0; n < 300; n++) {( function() {
           var i = n;
           var color = colors[colorIndex++];
@@ -84,12 +185,67 @@
           layer.add(box);
         }());
       }
+        */
+
+      var g1 = addModule(10,10,30,layer);
 
       stage.add(layer);
 
+      console.log(g1);
+
+      function showtime() {
+
+
+      }
+
+
+      function addModule(height,width,size,layer) {
+
+        var group = new Kinetic.Group({
+            listening: false
+        });
+
+        var pY = 0;
+
+        for (var y = 0;y<height;y++) {
+
+            pY = size*y;
+
+            for (var x = 0;x<width;x++) {
+
+                var boxId = 'x'+x+'y'+y;
+
+                var pX = x*size;
+                var box = new Kinetic.Rect({
+                    id: boxId,
+                    x: pX,
+                    y: pY,
+                    offset: {
+                      x: 0,
+                      y: 0
+                    },
+                    width: size,
+                    height: size,
+                    fill: 'black',
+                    stroke: '#333333',
+                    strokeWidth: 1
+                  });
+
+                group.add(box);
+            }
+
+        }
+
+        layer.add(group);
+
+        return group;
+
+      }
+
+
       var anim = new Kinetic.Animation(function(frame) {
-        update(layer, frame);
-      }, layer);
+        update(g1, frame);
+      }, g1);
 
       anim.start();
 

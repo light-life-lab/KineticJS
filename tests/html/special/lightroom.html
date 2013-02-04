@@ -10,6 +10,7 @@
     </head>
     <body>
     	<div id="container"></div>
+        <!--
         <script src="../../../dist/kinetic-Global-vcurrent.min.js"></script>
         <script src="../../../dist/kinetic-Type-vcurrent.min.js"></script>
         <script src="../../../dist/kinetic-Canvas-vcurrent.min.js"></script>
@@ -21,17 +22,22 @@
         <script src="../../../dist/kinetic-Layer-vcurrent.min.js"></script>
         <script src="../../../dist/kinetic-Group-vcurrent.min.js"></script>
         <script src="../../../dist/kinetic-Shape-vcurrent.min.js"></script>
-        
         <script src="../../../dist/kinetic-Circle-vcurrent.min.js"></script>
  
         <script src="../../js/Test.js"></script>
-    <!--<script src="http://www.html5canvastutorials.com/libraries/kinetic-v4.3.1-beta.js"></script>-->
+      -->
+        <script src="../../../dist/kinetic-vcurrent.min.js"></script>
     <script>
 
     /*
 
 
-    mix 
+    mix
+
+    samples
+      - equalizer
+      - PLUR
+      - rubiks cube 
 
     animation paradigms:
 
@@ -39,7 +45,7 @@
     all pixels divided into groups of one pixel or more
     static groups, dynamic colors
 
-    - sprites
+    - sprites on canvas
     objects moving across canvas
     dynamic group, static color
 
@@ -55,10 +61,16 @@
             sprite contains states
 
             sprite has inlets and outlets
+              inlets map to states
+              outlets map to inlets
 
             group || transition
 
             transition || colors
+
+      - sprites behind canvas (ghost mapping)
+
+        
     */
     /*
     creation functions:
@@ -80,9 +92,12 @@
 
 
     */
+      var frameCount = 0;
 
       function update(group, frame) {
         //Animation runs every ~25ms
+
+        //set & return new Kinetic.Animation per target group
 
         //console.log(frame.timeDiff);
 
@@ -92,14 +107,30 @@
         //var pixel = group.get('#x0y0');
         //console.log(pixel);
         
-        var tgt = [{x:1,y:1},{x:1,y:2},{x:1,y:3},{x:1,y:4}];
+        //var tgt = [{x:0,y:0},{x:1,y:0},{x:2,y:0}];
+
+        //!!! tgts.length MUST EQUAL fills.length
+        var tgts = [
+          [{x:0,y:0},{x:1,y:0},{x:2,y:0}],
+          [{x:0,y:1},{x:1,y:1},{x:2,y:1}],
+          [{x:0,y:3},{x:1,y:2},{x:2,y:2}],
+        ];
+
+        var fills = ['#ff0000','#00ff00','#0000ff'];
+
+        //var transitions = ????;
 
         for(var n = 0; n < pixels.length; n++) {
           
           var pixel = pixels[n];
 
+
+
           var id = pixel.getId();
 
+
+
+          /*
           for (var t = 0; t < tgt.length; t++) {
 
             var tId = 'x'+tgt[t].x+'y'+tgt[t].y;
@@ -111,9 +142,15 @@
               }
 
           }
-          
+          */
           //shape.attrs.rotation += angularDiff;
         }
+
+
+        frameCount++;
+
+        if (frameCount === 2000000) frameCount = 0;
+
         //pixel[0].setFill('#00ff00');
         /*
         var angularSpeed = 1;
@@ -127,14 +164,156 @@
         */
       }
 
-      function makeCollection(map) {
-
-        var pGroup = new Kinetic.Collection()
 
 
-        return pGroup;
+      function makeGroupFromMap (tgts, pixels, layer) {
+
+        var group = new Kinetic.Group({
+          listening: false
+      });
+
+        for (var t = 0; t < tgts.length; t++) {
+
+          
+          var tgtId = 'x'+tgts[t].x+'y'+tgts[t].y;
+          var pixel = pixels.get('#'+tgtId);
+
+          group.add(pixel[0].clone());
+          //group.add(pixel[0]);
+
+        }
+
+        layer.add(group);
+
+        return group;
 
       }
+
+     
+
+
+      function makeCollection(map) {
+
+        //var pGroup = new Kinetic.Collection();
+
+
+        //return pGroup;
+
+      }
+
+      //CLASS DEFINITIONS
+    //-----------------  
+
+      var Transition = function(options){
+        this.inlets = (options.inlets) ? options.inlets : null;
+        this.active = false;
+        this.loop =  (options.loop) ? options.loop : false;
+        this.duration =  (options.duration) ? options.duration : 1000;
+        this.colors = (options.colors) ? options.colors : null;
+        this.group = (options.group) ? options.group : null;
+        this.frameIndex = 0;
+        this.runFrame = function() {
+          console.log('running frame at index '+ this.frameIndex);
+          var sColor, eColor;
+
+              if (this.frameIndex === this.colors.length-1) {
+
+                sColor = this.colors[this.frameIndex];
+                eColor = this.colors[0];
+
+              } else {
+
+                sColor = this.colors[this.frameIndex];
+                eColor = this.colors[this.frameIndex+1];
+
+                this.transColor(sColor, eColor, group1, 30, 1000);
+                //this.frameIndex++;
+
+              }
+
+              //this.transColor(sColor, eColor, group1, 30, 1000);
+              //this.frameIndex++;
+
+        };
+        this.start = function() {
+          console.log('start transition');
+
+          if (!this.active) {
+            this.active = true;
+
+            this.runFrame();
+            /*
+            for (var c = 0; c < this.colors.length; c ++) {
+              console.log(this.colors[c]);
+
+              
+            }
+
+            var interval = setInterval(function() {
+
+
+            }, 1050);
+            */
+          }
+        };
+        this.stop = function() {
+          console.log('stop transition');
+
+          if (this.active) this.active = false;
+        };
+        this.transColor = function(startColor, endColor, pixels, fps, duration) {//(x, y, w, h, r, g, b) {
+
+          var that = this;
+
+        var s = 0; // step counter
+
+        var steps = duration / fps;
+
+
+        var dr = (endColor.r - startColor.r) / steps, // how much red should be added each time
+            dg = (endColor.g - startColor.g) / steps, // green
+            db = (endColor.b - startColor.b) / steps; // blue
+            
+            
+        var tgt = pixels.getChildren();
+
+        var interval = setInterval(function() {
+
+            //console.log(s);
+
+            for (var p = 0; p < tgt.length; p++) {
+
+              var fill = 'rgb(' + Math.round(startColor.r + dr * s) + ','
+                                + Math.round(startColor.g + dg * s) + ','
+                                + Math.round(startColor.b + db * s) + ')';
+              //console.log(fill);
+
+            tgt[p].setFill(fill);
+            //ctx.fillRect(x, y, w, h); // will redraw the area each time
+            }
+
+            stage.draw();
+            s++;
+            console.log(s+'/'+steps);
+
+            if(s > steps) { // stop if done
+              clearInterval(interval);
+
+                console.log('done');
+                //console.log(that.frameIndex);
+
+                that.frameIndex++;
+                that.runFrame();
+
+                
+                //s = 0;
+
+                
+            }
+        }, that.duration/fps);
+
+      }
+      };
 
       var stage = new Kinetic.Stage({
         container: 'container',
@@ -187,11 +366,81 @@
       }
         */
 
-      var g1 = addModule(10,10,30,layer);
+      var g1 = addModule(3,3,150,layer);
+      // var g1 = addModule(10,10,30,layer);
 
       stage.add(layer);
 
       console.log(g1);
+
+      var tgts = [{x:0,y:0},{x:1,y:0},{x:2,y:0}];
+      var group1 = makeGroupFromMap(tgts, g1, layer);
+
+      console.log(group1);
+
+            //g1.setVisible(false);
+
+      //group1.moveToTop();
+      console.log(g1.getZIndex());
+      console.log(group1.getVisible());
+
+      //console.log(g1);
+      g1.hide();
+
+      stage.draw();
+
+      var sColor = {r:255,g:0,b:0};
+      var eColor = {r:0,g:255,b:0};
+
+      var colorTrans = [{r:255,g:0,b:0}, {r:0,g:255,b:0}, {r:0,g:0,b:255}];
+
+      var t1 = new Transition({
+        colors: colorTrans,
+        group: group1
+      });
+
+      console.log(t1);
+      t1.start();
+
+
+
+    
+
+      //console.log(Transition);
+
+      //transColor(sColor, eColor, group1, 30, 1000);
+      /*
+      group1.transitionTo({
+        //fill: '#ff0000',
+        x: 1,
+        duration: 2,
+        //easing: 'bounce-ease-out',
+        callback: function() {
+          // do something
+        }
+      });
+      */
+
+
+      /*
+      var anim = new Kinetic.Animation(function(frame) {
+        update(g1, frame);
+      }, g1);
+
+      anim.start();
+      */
+
+
+
+      function linkGroupWithColorTransitions(group, transitions) {
+
+
+          
+
+      }
+
+      
+
 
       function showtime() {
 
@@ -226,7 +475,7 @@
                     },
                     width: size,
                     height: size,
-                    fill: 'black',
+                    fill: 'rgb(0,0,0)',
                     stroke: '#333333',
                     strokeWidth: 1
                   });
@@ -243,11 +492,6 @@
       }
 
 
-      var anim = new Kinetic.Animation(function(frame) {
-        update(g1, frame);
-      }, g1);
-
-      anim.start();
 
     </script>
   </body>
